@@ -135,5 +135,16 @@ class AccountAnalyticLine(models.Model):
         self[1:].unlink()
         return self[0]
 
-    def _check_can_update_timesheet(self):
-        return super()._check_can_update_timesheet() or not self.filtered("sheet_id")
+    def _check_can_write(self, values):
+        if not self.env.su:
+            if self.holiday_id and values.get(
+                "sheet_id", False
+            ):  # Dont raise error during create
+                return True
+            if self.holiday_id and self.sheet_id:
+                raise UserError(
+                    _(
+                        "You cannot modify timesheets that are linked to time off requests. Please use the Time Off application to modify your time off requests instead."
+                    )
+                )
+        return super()._check_can_write(values)

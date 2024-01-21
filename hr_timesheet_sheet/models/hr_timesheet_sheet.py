@@ -63,7 +63,6 @@ class Sheet(models.Model):
         default=lambda self: self._default_employee(),
         required=True,
         readonly=True,
-        states={"new": [("readonly", False)]},
     )
     user_id = fields.Many2one(
         comodel_name="res.users",
@@ -78,7 +77,6 @@ class Sheet(models.Model):
         required=True,
         index=True,
         readonly=True,
-        states={"new": [("readonly", False)]},
     )
     date_end = fields.Date(
         string="Date To",
@@ -86,28 +84,24 @@ class Sheet(models.Model):
         required=True,
         index=True,
         readonly=True,
-        states={"new": [("readonly", False)]},
     )
     timesheet_ids = fields.One2many(
         comodel_name="account.analytic.line",
         inverse_name="sheet_id",
         string="Timesheets",
         readonly=True,
-        states={"new": [("readonly", False)], "draft": [("readonly", False)]},
     )
     line_ids = fields.One2many(
         comodel_name="hr_timesheet.sheet.line",
         compute="_compute_line_ids",
         string="Timesheet Sheet Lines",
         readonly=True,
-        states={"new": [("readonly", False)], "draft": [("readonly", False)]},
     )
     new_line_ids = fields.One2many(
         comodel_name="hr_timesheet.sheet.new.analytic.line",
         inverse_name="sheet_id",
         string="Temporary Timesheets",
         readonly=True,
-        states={"new": [("readonly", False)], "draft": [("readonly", False)]},
     )
     state = fields.Selection(
         [
@@ -141,7 +135,6 @@ class Sheet(models.Model):
         string="Department",
         default=lambda self: self._default_department_id(),
         readonly=True,
-        states={"new": [("readonly", False)]},
     )
     reviewer_id = fields.Many2one(
         comodel_name="hr.employee", string="Reviewer", readonly=True, tracking=True
@@ -244,7 +237,7 @@ class Sheet(models.Model):
     def _get_complete_name_components(self):
         """Hook for extensions"""
         self.ensure_one()
-        return [self.employee_id.name_get()[0][1]]
+        return [self.employee_id.display_name]
 
     def _get_overlapping_sheet_domain(self):
         """Hook for extensions"""
@@ -404,9 +397,9 @@ class Sheet(models.Model):
     def _get_matrix_sortby(self, key):
         res = []
         for attribute in key:
-            if hasattr(attribute, "name_get"):
-                name = attribute.name_get()
-                value = name[0][1] if name else ""
+            if hasattr(attribute, "display_name"):
+                name = attribute.display_name
+                value = name if name else ""
             else:
                 value = attribute
             res.append(value)
@@ -612,9 +605,9 @@ class Sheet(models.Model):
     def _get_line_name(self, project_id, task_id=None, **kwargs):
         self.ensure_one()
         if task_id:
-            return f"{project_id.name_get()[0][1]} - {task_id.name_get()[0][1]}"
+            return f"{project_id.display_name} - {task_id.display_name}"
 
-        return project_id.name_get()[0][1]
+        return project_id.display_name
 
     def _get_new_line_unique_id(self):
         """Hook for extensions"""
@@ -700,7 +693,7 @@ class Sheet(models.Model):
     def delete_empty_lines(self, delete_empty_rows=False):
         self.ensure_one()
         for name in list(set(self.line_ids.mapped("value_y"))):
-            rows = self.line_ids.filtered(lambda l: l.value_y == name)
+            rows = self.line_ids.filtered(lambda x, name=name: x.value_y == name)
             if not rows:
                 continue
             row = fields.first(rows)
@@ -711,7 +704,7 @@ class Sheet(models.Model):
             if not check:
                 continue
             row_lines = self.timesheet_ids.filtered(
-                lambda aal: self._is_line_of_row(aal, row)
+                lambda aal, row=row: self._is_line_of_row(aal, row)
             )
             row_lines.filtered(
                 lambda t: t.name == empty_name
@@ -765,7 +758,7 @@ class Sheet(models.Model):
         self.ensure_one()
         new_line_model = self.env["hr_timesheet.sheet.new.analytic.line"]
         new_line = self.new_line_ids.filtered(
-            lambda l: self._is_compatible_new_line(l, line)
+            lambda x: self._is_compatible_new_line(x, line)
         )
         if new_line:
             new_line.write({"unit_amount": line.unit_amount})

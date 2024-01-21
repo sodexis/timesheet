@@ -373,7 +373,7 @@ class TestHrTimesheetSheet(TransactionCase):
                 line_form.unit_amount = 1.0
                 self.assertEqual(len(sheet.new_line_ids), 1)
         line2 = fields.first(
-            sheet.line_ids.filtered(lambda l: l.date != timesheet.date)
+            sheet.line_ids.filtered(lambda x: x.date != timesheet.date)
         )
         self.assertEqual(line2.unit_amount, 1.0)
         self.assertEqual(len(sheet.timesheet_ids), 2)
@@ -473,7 +473,7 @@ class TestHrTimesheetSheet(TransactionCase):
         self.assertEqual(timesheet_1_or_2.unit_amount, 1.0)
         self.assertEqual(timesheet_3.unit_amount, 0.0)
 
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount != 0.0)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount != 0.0)
         self.assertEqual(len(line), 1)
         self.assertEqual(line.unit_amount, 1.0)
 
@@ -526,7 +526,7 @@ class TestHrTimesheetSheet(TransactionCase):
             pass  # trigger edit and save
         self.assertEqual(len(sheet.line_ids), 7)
         self.assertEqual(len(sheet.timesheet_ids), 2)
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount != 0.0)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount != 0.0)
         self.assertEqual(line.unit_amount, 4.0)
 
         timesheet_2.name = empty_name
@@ -622,7 +622,7 @@ class TestHrTimesheetSheet(TransactionCase):
             pass  # trigger edit and save
         self.assertEqual(len(sheet.line_ids), 7)
         self.assertEqual(len(sheet.timesheet_ids), 5)
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount != 0.0)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount != 0.0)
         self.assertEqual(line.unit_amount, 10.0)
 
         timesheet_2.name = empty_name
@@ -652,7 +652,7 @@ class TestHrTimesheetSheet(TransactionCase):
                 line_form.unit_amount = 3.0
                 self.assertEqual(len(sheet.new_line_ids), 1)
         self.assertEqual(len(sheet.timesheet_ids), 4)
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount != 0.0)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount != 0.0)
         self.assertEqual(line.unit_amount, 3.0)
 
         timesheet_3_4_and_5 = self.aal_model.search(
@@ -676,7 +676,7 @@ class TestHrTimesheetSheet(TransactionCase):
         with Form(sheet.with_user(self.user)):
             pass  # trigger edit and save
         self.assertEqual(len(sheet.timesheet_ids), 4)
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount != 0.0)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount != 0.0)
         self.assertEqual(len(line), 1)
         self.assertEqual(line.unit_amount, 5.0)
 
@@ -866,7 +866,7 @@ class TestHrTimesheetSheet(TransactionCase):
         self.assertEqual(len(sheet.timesheet_ids), 1)
         self.assertEqual(len(sheet.line_ids), 7)
 
-        line = sheet.line_ids.filtered(lambda l: l.unit_amount)
+        line = sheet.line_ids.filtered(lambda x: x.unit_amount)
         self.assertEqual(len(line), 1)
         self.assertEqual(line.unit_amount, 2.0)
 
